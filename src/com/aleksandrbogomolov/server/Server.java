@@ -1,4 +1,6 @@
-package com.aleksandrbogomolov;
+package com.aleksandrbogomolov.server;
+
+import com.aleksandrbogomolov.*;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -25,7 +27,7 @@ public class Server {
 
     public Server() {
         try {
-            this.server = new ServerSocket(Properties.PORT);
+            this.server = new ServerSocket(com.aleksandrbogomolov.Properties.PORT);
             this.fileDirectory = new File("~/Documents/Sport");
             getListFile().forEach(i -> fileDownloadCount.put(i, 0));
             while (!isServerStopped) {

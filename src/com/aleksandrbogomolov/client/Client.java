@@ -1,4 +1,6 @@
-package com.aleksandrbogomolov;
+package com.aleksandrbogomolov.client;
+
+import com.aleksandrbogomolov.Properties;
 
 import java.io.BufferedReader;
 import java.io.IOException;
