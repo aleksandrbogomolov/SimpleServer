@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
-public class Client {
+public class Client extends Thread {
 
     private BufferedReader in;
 
@@ -22,22 +22,35 @@ public class Client {
 
     private Scanner scanner;
 
-    public Client() {
-        try {
-            this.scanner = new Scanner(System.in);
-            this.socket = new Socket(Properties.IP, Properties.PORT);
-            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.out = new PrintWriter(socket.getOutputStream());
+    public static void main(String[] args) {
+        new Client().start();
+    }
 
-            String str = "";
-            while (!"3".equals(str)) {
+    private Client() {
+        try {
+            scanner = new Scanner(System.in);
+            socket = new Socket(Properties.IP, Properties.PORT);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            String str;
+            RedOut redOut = new RedOut();
+            redOut.start();
+            while (true) {
                 str = scanner.nextLine();
                 out.println(str);
-                switch (str) {
-                    case "1": readListFile(); break;
-                    case "2": saveFile(); break;
-                    case "3": close(); break;
-                    default: readOut();
+                if ("2".equals(str)) saveFile();
+                else if ("3".equals(str)) {
+                    redOut.setStop();
+                    close();
+                    break;
                 }
             }
         } catch (IOException e) {
@@ -47,23 +60,14 @@ public class Client {
         }
     }
 
-    private void readListFile() throws IOException {
-        readOut();
-    }
-
     private void saveFile() throws IOException {
         System.out.println("Введите полное название скачиваемого файла");
-        out.println(scanner.nextLine());
+        String source = scanner.nextLine();
+        out.println(source);
         System.out.println("Введите адресс директории для сохранения файла");
-        Path target = Files.createFile(Paths.get(scanner.nextLine()));
+        Path target = Paths.get(scanner.nextLine() + "/" + source);
         Files.copy(socket.getInputStream(), target);
-    }
-
-    private void readOut() throws IOException {
-        String str;
-        while ((str = in.readLine()) != null) {
-            System.out.println(str);
-        }
+        System.out.println("Файл сохранен");
     }
 
     @SuppressWarnings("Duplicates")
@@ -74,6 +78,28 @@ public class Client {
             if (socket != null) socket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private class RedOut extends Thread {
+
+        private boolean isStopped;
+
+        void setStop() {
+            isStopped = true;
+        }
+
+        @Override
+        public void run() {
+            try {
+                String str;
+                while (!isStopped) {
+                    str = in.readLine();
+                    System.out.println(str);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

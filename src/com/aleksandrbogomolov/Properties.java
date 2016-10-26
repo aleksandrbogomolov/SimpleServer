@@ -6,7 +6,7 @@ public abstract class Properties {
 
     public static final int STOP_PORT = 8283;
 
-    public static final String IP = "127.0.0.1";
+    public static final String IP = "localhost";
 
     public static final String LS = System.getProperty("line.separator");
 

@@ -1,19 +1,17 @@
 package com.aleksandrbogomolov.server;
 
-import com.aleksandrbogomolov.*;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
-import static com.aleksandrbogomolov.Properties.GREETING;
-import static com.aleksandrbogomolov.Properties.LS;
+import static com.aleksandrbogomolov.Properties.*;
 
-public class Server {
+public class Server implements Runnable {
 
     private ServerSocket server;
 
@@ -27,9 +25,16 @@ public class Server {
 
     public Server() {
         try {
-            this.server = new ServerSocket(com.aleksandrbogomolov.Properties.PORT);
-            this.fileDirectory = new File("~/Documents/Sport");
-            getListFile().forEach(i -> fileDownloadCount.put(i, 0));
+            fileDirectory = new File("/Volumes/Macintosh HD/Documents/Sport");
+            server = new ServerSocket(PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
             while (!isServerStopped) {
                 Socket socket = server.accept();
                 Connection con = new Connection(socket);
@@ -43,10 +48,7 @@ public class Server {
         }
     }
 
-
-    private Stream<String> getListFile() {return Arrays.stream(fileDirectory.list());}
-
-    private void stopServer() {
+    public void stopServer() {
         isServerStopped = true;
     }
 
@@ -72,38 +74,40 @@ public class Server {
         private Boolean isConnectionStopped = false;
 
         Connection(Socket socket) {
-            this.socket = socket;
             try {
+                this.socket = socket;
                 this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                this.out = new PrintWriter(socket.getOutputStream());
+                this.out = new PrintWriter(socket.getOutputStream(), true);
             } catch (IOException e) {
                 e.printStackTrace();
-                close();
             }
         }
 
         @Override
         public void run() {
-            out.println(GREETING);
-            String str;
-            while (!isConnectionStopped) {
-                try {
+            try {
+                out.println(GREETING);
+                String str;
+                while (!isConnectionStopped) {
                     str = in.readLine();
-                    switch (str) {
-                        case "1": printListFile(); break;
-                        case "2": loadFile(); break;
-                        case "3": stopConnection(); break;
-                        default: out.println("Введено неправильное значение!" + LS + GREETING);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    close();
+                    if ("1".equals(str)) printListFile();
+                    else if ("2".equals(str)) loadFile();
+                    else if ("3".equals(str)) stopConnection();
+                    else out.println("Введено неправильное значение!" + LS + GREETING);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                close();
             }
         }
 
-        void printListFile() {getListFile().forEach(out::println);}
+        void printListFile() {
+            String[] fileList = fileDirectory.list();
+            if (fileList != null) {
+                Arrays.stream(fileList).forEach(out::println);
+            } else System.out.println("Директория по введенному пути отсутсвует");
+        }
 
         void loadFile() throws IOException {
             String sourceFile = in.readLine();
