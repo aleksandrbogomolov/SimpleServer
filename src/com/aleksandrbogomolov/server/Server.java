@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.aleksandrbogomolov.Properties.PORT;
+import static com.aleksandrbogomolov.util.Properties.PORT;
 
 public class Server implements Runnable {
 
@@ -47,7 +47,7 @@ public class Server implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.info("Создан новый Сервер");
+        logger.info("Made new server");
     }
 
     @Override
@@ -57,11 +57,11 @@ public class Server implements Runnable {
                 Socket socket = server.accept();
                 Connection con = new Connection(socket);
                 connections.add(con);
-                logger.info("Добавлено новое соединение " + con.getName());
+                logger.info("Added new connection " + con.getName());
                 con.start();
             }
         } catch (IOException e) {
-            System.out.println("Сервер остановлен");
+            System.out.println("Server has error");
         } finally {
             closeAll();
         }
@@ -72,15 +72,15 @@ public class Server implements Runnable {
     }
 
     public void closeAll() {
+        logger.info("Server stopped");
         try {
             synchronized (connections) {
-                connections.forEach(Connection::close);
+                connections.forEach(Connection::interrupt);
             }
             collector.interrupt();
-            logger.info("Сервер остановлен");
             if (server != null) server.close();
         } catch (IOException e) {
-            System.out.println("Сервер остановлен");
+            System.out.println("Server stopped");
         }
     }
 
@@ -113,9 +113,12 @@ public class Server implements Runnable {
                     if ("1".equals(str)) printListFile();
                     else if ("2".equals(str)) loadFile();
                     else if ("3".equals(str)) stopConnection();
+                    sleep(10);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (InterruptedException i) {
+                System.out.println("Connection " + this.getName() + " interrupted");
             } finally {
                 close();
             }
@@ -126,7 +129,7 @@ public class Server implements Runnable {
             if (fileList != null) {
                 out.writeObject(new Message("message", fileList));
                 out.flush();
-            } else System.out.println("Директория по введенному пути отсутсвует");
+            } else System.out.println("Directory not exist");
             logger.info("Print list files for " + this.getName());
         }
 
@@ -185,7 +188,7 @@ public class Server implements Runnable {
                     Files.write(path, reader.toString().getBytes(), StandardOpenOption.CREATE);
                     sleep(10000);
                 } catch (InterruptedException i) {
-                    System.out.println("Сборщик статистики остановлен");
+                    System.out.println("Statistic collector stopped");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

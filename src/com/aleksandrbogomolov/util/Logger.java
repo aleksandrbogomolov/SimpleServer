@@ -31,7 +31,7 @@ public class Logger {
         try {
             Files.write(log, result.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Server offline");
         }
     }
 }

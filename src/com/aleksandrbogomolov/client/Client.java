@@ -1,8 +1,7 @@
 package com.aleksandrbogomolov.client;
 
-import com.aleksandrbogomolov.Properties;
+import com.aleksandrbogomolov.util.Properties;
 import com.aleksandrbogomolov.server.Message;
-import com.aleksandrbogomolov.util.Logger;
 
 import java.io.*;
 import java.net.Socket;
@@ -59,7 +58,7 @@ public class Client extends Thread {
                 } else System.out.println("Введено неправильное значение!" + LS + LS + GREETING);
             }
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Server not answer");
         } finally {
             close();
         }
