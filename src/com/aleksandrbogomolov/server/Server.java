@@ -17,7 +17,7 @@ public class Server implements Runnable {
 
     private File fileDirectory;
 
-    private Boolean isServerStopped = false;
+    private boolean isServerStopped = false;
 
     private List<Connection> connections = Collections.synchronizedList(new ArrayList<>());
 
@@ -71,7 +71,7 @@ public class Server implements Runnable {
 
         private Socket socket;
 
-        private Boolean isConnectionStopped = false;
+        private boolean isConnectionStopped = false;
 
         Connection(Socket socket) {
             try {
@@ -86,14 +86,12 @@ public class Server implements Runnable {
         @Override
         public void run() {
             try {
-                out.println(GREETING);
                 String str;
                 while (!isConnectionStopped) {
                     str = in.readLine();
                     if ("1".equals(str)) printListFile();
                     else if ("2".equals(str)) loadFile();
                     else if ("3".equals(str)) stopConnection();
-                    else out.println("Введено неправильное значение!" + LS + GREETING);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -111,8 +109,15 @@ public class Server implements Runnable {
 
         void loadFile() throws IOException {
             String sourceFile = in.readLine();
-            Path source = FileSystems.getDefault().getPath(fileDirectory.getAbsolutePath() + "/" + sourceFile);
-            Files.copy(source, Files.newOutputStream(source));
+            File source = new File(fileDirectory.getAbsolutePath() + "/" + sourceFile);
+            byte[] bytes = new byte[(int) source.length()];
+            BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(source));
+            BufferedOutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
+            inputStream.read(bytes, 0 , bytes.length);
+            outputStream.write(bytes, 0, bytes.length);
+            outputStream.flush();
+            inputStream.close();
+            outputStream.close();
             fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 0);
         }
 
