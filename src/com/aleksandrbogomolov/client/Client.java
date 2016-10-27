@@ -2,6 +2,7 @@ package com.aleksandrbogomolov.client;
 
 import com.aleksandrbogomolov.Properties;
 import com.aleksandrbogomolov.server.Message;
+import com.aleksandrbogomolov.util.Logger;
 
 import java.io.*;
 import java.net.Socket;

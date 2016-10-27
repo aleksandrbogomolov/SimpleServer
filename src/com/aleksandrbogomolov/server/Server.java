@@ -1,5 +1,7 @@
 package com.aleksandrbogomolov.server;
 
+import com.aleksandrbogomolov.util.Logger;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,6 +18,8 @@ public class Server implements Runnable {
 
     private boolean isServerStopped = false;
 
+    private Logger logger;
+
     private List<Connection> connections = Collections.synchronizedList(new ArrayList<>());
 
     private Map<String, Integer> fileDownloadCount = new ConcurrentHashMap<>();
@@ -23,10 +27,12 @@ public class Server implements Runnable {
     public Server() {
         try {
             fileDirectory = new File("/Volumes/Macintosh HD/Documents/Sport");
+            logger = new Logger();
             server = new ServerSocket(PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        logger.info("Create new Server");
     }
 
     @Override
@@ -36,11 +42,13 @@ public class Server implements Runnable {
                 Socket socket = server.accept();
                 Connection con = new Connection(socket);
                 connections.add(con);
+                logger.info("Add new connection " + con.getName());
                 con.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            logger.info("Stop Server");
             closeAll();
         }
     }
@@ -103,6 +111,7 @@ public class Server implements Runnable {
                 out.writeObject(new Message("message", fileList));
                 out.flush();
             } else System.out.println("Директория по введенному пути отсутсвует");
+            logger.info("Print list files for " + this.getName());
         }
 
         void loadFile() throws IOException {
@@ -115,6 +124,7 @@ public class Server implements Runnable {
             out.flush();
             inputStream.close();
             fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 0);
+            logger.info("Connection " + this.getName() + " load file " + sourceFile);
         }
 
         void stopConnection() {isConnectionStopped = true;}
@@ -128,6 +138,7 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            logger.info("Close connection " + this.getName());
         }
     }
 }
