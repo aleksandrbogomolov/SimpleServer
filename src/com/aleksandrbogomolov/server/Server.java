@@ -9,7 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.aleksandrbogomolov.Properties.PORT;
@@ -44,7 +47,7 @@ public class Server implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.info("Create new Server");
+        logger.info("Создан новый Сервер");
     }
 
     @Override
@@ -54,13 +57,12 @@ public class Server implements Runnable {
                 Socket socket = server.accept();
                 Connection con = new Connection(socket);
                 connections.add(con);
-                logger.info("Add new connection " + con.getName());
+                logger.info("Добавлено новое соединение " + con.getName());
                 con.start();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Сервер остановлен");
         } finally {
-            logger.info("Stop Server");
             closeAll();
         }
     }
@@ -69,15 +71,16 @@ public class Server implements Runnable {
         isServerStopped = true;
     }
 
-    private void closeAll() {
+    public void closeAll() {
         try {
             synchronized (connections) {
                 connections.forEach(Connection::close);
             }
             collector.interrupt();
+            logger.info("Сервер остановлен");
             if (server != null) server.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Сервер остановлен");
         }
     }
 
@@ -151,7 +154,7 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            logger.info("Close connection " + this.getName());
+            logger.info("Соединение " + this.getName() + " закрыто");
         }
     }
 
@@ -161,7 +164,7 @@ public class Server implements Runnable {
 
         private Path path;
 
-        public StatisticCollector() {
+        StatisticCollector() {
             try {
                 if (!new File(pathToFile).exists()) {
                     this.path = Files.createFile(Paths.get(pathToFile));
@@ -181,7 +184,9 @@ public class Server implements Runnable {
                 try {
                     Files.write(path, reader.toString().getBytes(), StandardOpenOption.CREATE);
                     sleep(10000);
-                } catch (IOException | InterruptedException e) {
+                } catch (InterruptedException i) {
+                    System.out.println("Сборщик статистики остановлен");
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
