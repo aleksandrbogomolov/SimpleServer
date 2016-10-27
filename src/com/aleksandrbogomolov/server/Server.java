@@ -3,13 +3,10 @@ package com.aleksandrbogomolov.server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.aleksandrbogomolov.Properties.*;
+import static com.aleksandrbogomolov.Properties.PORT;
 
 public class Server implements Runnable {
 
@@ -67,7 +64,7 @@ public class Server implements Runnable {
 
         private BufferedReader in;
 
-        private PrintWriter out;
+        private ObjectOutputStream out;
 
         private Socket socket;
 
@@ -77,7 +74,7 @@ public class Server implements Runnable {
             try {
                 this.socket = socket;
                 this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                this.out = new PrintWriter(socket.getOutputStream(), true);
+                this.out = new ObjectOutputStream(socket.getOutputStream());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -100,10 +97,11 @@ public class Server implements Runnable {
             }
         }
 
-        void printListFile() {
+        void printListFile() throws IOException {
             String[] fileList = fileDirectory.list();
             if (fileList != null) {
-                Arrays.stream(fileList).forEach(out::println);
+                out.writeObject(new Message("message", fileList));
+                out.flush();
             } else System.out.println("Директория по введенному пути отсутсвует");
         }
 
@@ -112,12 +110,10 @@ public class Server implements Runnable {
             File source = new File(fileDirectory.getAbsolutePath() + "/" + sourceFile);
             byte[] bytes = new byte[(int) source.length()];
             BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(source));
-            BufferedOutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
-            inputStream.read(bytes, 0 , bytes.length);
-            outputStream.write(bytes, 0, bytes.length);
-            outputStream.flush();
+            inputStream.read(bytes, 0, bytes.length);
+            out.writeObject(new Message("file", bytes));
+            out.flush();
             inputStream.close();
-            outputStream.close();
             fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 0);
         }
 
