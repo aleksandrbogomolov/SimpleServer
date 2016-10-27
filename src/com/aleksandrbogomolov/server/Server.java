@@ -5,6 +5,10 @@ import com.aleksandrbogomolov.util.Logger;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,15 +24,23 @@ public class Server implements Runnable {
 
     private Logger logger;
 
+    private StatisticCollector collector;
+
     private List<Connection> connections = Collections.synchronizedList(new ArrayList<>());
 
     private Map<String, Integer> fileDownloadCount = new ConcurrentHashMap<>();
+
+    private Map<String, Integer> getFileDownloadCount() {
+        return fileDownloadCount;
+    }
 
     public Server() {
         try {
             fileDirectory = new File("/Volumes/Macintosh HD/Documents/Sport");
             logger = new Logger();
+            collector = new StatisticCollector();
             server = new ServerSocket(PORT);
+            collector.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -62,6 +74,7 @@ public class Server implements Runnable {
             synchronized (connections) {
                 connections.forEach(Connection::close);
             }
+            collector.interrupt();
             if (server != null) server.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -123,7 +136,7 @@ public class Server implements Runnable {
             out.writeObject(new Message("file", bytes));
             out.flush();
             inputStream.close();
-            fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 0);
+            fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 1);
             logger.info("Connection " + this.getName() + " load file " + sourceFile);
         }
 
@@ -139,6 +152,39 @@ public class Server implements Runnable {
                 e.printStackTrace();
             }
             logger.info("Close connection " + this.getName());
+        }
+    }
+
+    private class StatisticCollector extends Thread {
+
+        private final String pathToFile = System.getProperty("user.dir") + "/" + "statistic.txt";
+
+        private Path path;
+
+        public StatisticCollector() {
+            try {
+                if (!new File(pathToFile).exists()) {
+                    this.path = Files.createFile(Paths.get(pathToFile));
+                } else {
+                    this.path = Paths.get(pathToFile);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void run() {
+            while (!this.isInterrupted()) {
+                StringBuilder reader = new StringBuilder();
+                getFileDownloadCount().entrySet().stream().map(a -> a.getKey() + " : " + a.getValue() + System.lineSeparator()).forEach(reader::append);
+                try {
+                    Files.write(path, reader.toString().getBytes(), StandardOpenOption.CREATE);
+                    sleep(10000);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
