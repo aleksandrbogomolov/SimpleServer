@@ -37,9 +37,9 @@ public class Server implements Runnable {
         return fileDownloadCount;
     }
 
-    public Server() {
+    public Server(String path) {
         try {
-            fileDirectory = new File("/Volumes/Macintosh HD/Documents/Sport");
+            fileDirectory = new File(path);
             logger = new Logger();
             collector = new StatisticCollector();
             server = new ServerSocket(PORT);
@@ -61,7 +61,7 @@ public class Server implements Runnable {
                 con.start();
             }
         } catch (IOException e) {
-            System.out.println("Server has error");
+            System.out.println("Server stopped by isServerStopped");
         } finally {
             closeAll();
         }
@@ -80,7 +80,7 @@ public class Server implements Runnable {
             collector.interrupt();
             if (server != null) server.close();
         } catch (IOException e) {
-            System.out.println("Server stopped");
+            System.out.println("Server streams mb not closed");
         }
     }
 

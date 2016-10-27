@@ -6,14 +6,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static java.lang.Thread.sleep;
-
 public class Main {
 
     public static void main(String[] args) {
-        Server server = new Server();
-        Thread thread = new Thread(server);
-        thread.start();
+        Server server = new Server(args[0]);
+        new Thread(server).start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String str;
             while (true) {

@@ -26,7 +26,7 @@ public class Client extends Thread {
         new Client().start();
     }
 
-    private Client() {
+    public Client() {
         try {
             scanner = new Scanner(System.in);
             socket = new Socket(Properties.IP, Properties.PORT);
