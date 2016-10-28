@@ -1,7 +1,7 @@
 package com.aleksandrbogomolov.client;
 
-import com.aleksandrbogomolov.util.Properties;
 import com.aleksandrbogomolov.server.Message;
+import com.aleksandrbogomolov.util.Properties;
 
 import java.io.*;
 import java.net.Socket;
@@ -42,7 +42,7 @@ public class Client extends Thread {
         try {
             printGreeting();
             String str;
-            while (true) {
+            while (socket != null) {
                 str = scanner.nextLine();
                 out.println(str);
                 if ("1".equals(str)) {

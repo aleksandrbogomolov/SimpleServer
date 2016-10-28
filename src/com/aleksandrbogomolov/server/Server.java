@@ -75,7 +75,7 @@ public class Server implements Runnable {
         logger.info("Server stopped");
         try {
             synchronized (connections) {
-                connections.forEach(Connection::close);
+                connections.forEach(Connection::interrupt);
             }
             collector.interrupt();
             if (server != null) server.close();
@@ -92,8 +92,6 @@ public class Server implements Runnable {
 
         private Socket socket;
 
-        private boolean isConnectionStopped = false;
-
         Connection(Socket socket) {
             try {
                 this.socket = socket;
@@ -108,11 +106,11 @@ public class Server implements Runnable {
         public void run() {
             try {
                 String str;
-                while (!isConnectionStopped) {
+                while (!isInterrupted()) {
                     str = in.readLine();
                     if ("1".equals(str)) printListFile();
                     else if ("2".equals(str)) loadFile();
-                    else if ("3".equals(str)) stopConnection();
+                    else if ("3".equals(str)) this.interrupt();
                     sleep(10);
                 }
             } catch (IOException e) {
@@ -146,8 +144,6 @@ public class Server implements Runnable {
             logger.info("Connection " + this.getName() + " load file " + sourceFile);
         }
 
-        void stopConnection() {isConnectionStopped = true;}
-
         @SuppressWarnings("Duplicates")
         void close() {
             try {
@@ -155,9 +151,9 @@ public class Server implements Runnable {
                 if (out != null) out.close();
                 if (socket != null) socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Streams for " + this.getName() + " mb not closed");
             }
-            logger.info("Соединение " + this.getName() + " закрыто");
+            logger.info("Connection " + this.getName() + " closed");
         }
     }
 
