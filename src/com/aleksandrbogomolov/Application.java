@@ -6,12 +6,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class Main {
+public class Application {
 
     public static void main(String[] args) {
-        Server server = new Server(args[0]);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Enter path to directory");
+        Server server = null;
+        try {
+            server = new Server(reader.readLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         new Thread(server).start();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+        try {
             String str;
             while (true) {
                 str = reader.readLine();

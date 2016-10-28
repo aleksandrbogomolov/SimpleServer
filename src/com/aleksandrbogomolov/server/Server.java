@@ -75,7 +75,7 @@ public class Server implements Runnable {
         logger.info("Server stopped");
         try {
             synchronized (connections) {
-                connections.forEach(Connection::interrupt);
+                connections.forEach(Connection::close);
             }
             collector.interrupt();
             if (server != null) server.close();
