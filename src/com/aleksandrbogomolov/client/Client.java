@@ -10,17 +10,17 @@ import java.util.Scanner;
 
 public class Client extends Thread {
 
+    private final String LS = System.getProperty("line.separator");
+
+    private final String GREETING = LS + "Для получения списка доступных файлов введите цифру 1" + LS + "Для того чтобы скачать файл введите 2" + LS + "Для выхода введите 3";
+
+    private Socket socket;
+
     private ObjectInputStream in;
 
     private PrintWriter out;
 
-    private Socket socket;
-
-    private Scanner scanner;
-
-    private final String LS = System.getProperty("line.separator");
-
-    private final String GREETING = LS + "Для получения списка доступных файлов введите цифру 1" + LS + "Для того чтобы скачать файл введите 2" + LS + "Для выхода введите 3";
+    private final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         new Client().start();
@@ -28,10 +28,9 @@ public class Client extends Thread {
 
     public Client() {
         try {
-            scanner = new Scanner(System.in);
-            socket = new Socket(Properties.IP, Properties.PORT);
-            in = new ObjectInputStream(socket.getInputStream());
-            out = new PrintWriter(socket.getOutputStream(), true);
+            this.socket = new Socket(Properties.IP, Properties.PORT);
+            this.in = new ObjectInputStream(socket.getInputStream());
+            this.out = new PrintWriter(socket.getOutputStream(), true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -46,8 +45,7 @@ public class Client extends Thread {
                 str = scanner.nextLine();
                 out.println(str);
                 if ("1".equals(str)) {
-                    Message message = readMessage();
-                    Arrays.stream(message.getListFile()).forEach(System.out::println);
+                    Arrays.stream(readMessage().getListFile()).forEach(System.out::println);
                     printGreeting();
                 } else if ("2".equals(str)) {
                     saveFile();
@@ -78,8 +76,7 @@ public class Client extends Thread {
 
         File target = new File(scanner.nextLine() + "/" + source);
         BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(target));
-        Message message = readMessage();
-        outputStream.write(message.getFile());
+        outputStream.write(readMessage().getFile());
         outputStream.flush();
         outputStream.close();
 
