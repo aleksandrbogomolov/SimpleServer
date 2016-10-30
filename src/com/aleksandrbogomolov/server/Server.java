@@ -15,19 +15,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.aleksandrbogomolov.util.Properties.PATH;
 import static com.aleksandrbogomolov.util.Properties.PORT;
 
 public class Server implements Runnable {
 
     private ServerSocket server;
 
-    private File fileDirectory;
+    private File fileDirectory = new File(PATH);
+
+    private Logger logger = new Logger();
+
+    private StatisticCollector collector = new StatisticCollector();
 
     private boolean isServerStopped = false;
-
-    private Logger logger;
-
-    private StatisticCollector collector;
 
     private List<Connection> connections = Collections.synchronizedList(new ArrayList<>());
 
@@ -37,13 +38,10 @@ public class Server implements Runnable {
         return fileDownloadCount;
     }
 
-    public Server(String path) {
+    public Server() {
         try {
-            fileDirectory = new File(path);
-            logger = new Logger();
-            collector = new StatisticCollector();
-            server = new ServerSocket(PORT);
-            collector.start();
+            this.server = new ServerSocket(PORT);
+            this.collector.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,22 +59,18 @@ public class Server implements Runnable {
                 con.start();
             }
         } catch (IOException e) {
-            System.out.println("Server stopped by isServerStopped");
+            System.out.println("Server stopped by User");
         } finally {
             closeAll();
         }
     }
 
-    public void stopServer() {
-        isServerStopped = true;
-    }
+    public void stopServer() { isServerStopped = true; }
 
     public void closeAll() {
         logger.info("Server stopped");
         try {
-            synchronized (connections) {
-                connections.forEach(Connection::interrupt);
-            }
+            synchronized (connections) { connections.forEach(Connection::interrupt); }
             collector.interrupt();
             if (server != null) server.close();
         } catch (IOException e) {
@@ -86,11 +80,11 @@ public class Server implements Runnable {
 
     private class Connection extends Thread {
 
+        private Socket socket;
+
         private BufferedReader in;
 
         private ObjectOutputStream out;
-
-        private Socket socket;
 
         Connection(Socket socket) {
             try {
@@ -136,10 +130,12 @@ public class Server implements Runnable {
             File source = new File(fileDirectory.getAbsolutePath() + "/" + sourceFile);
             byte[] bytes = new byte[(int) source.length()];
             BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(source));
+
             inputStream.read(bytes, 0, bytes.length);
             out.writeObject(new Message("file", bytes));
             out.flush();
             inputStream.close();
+
             fileDownloadCount.put(sourceFile, fileDownloadCount.get(sourceFile) != null ? fileDownloadCount.get(sourceFile) + 1 : 1);
             logger.info("Connection " + this.getName() + " load file " + sourceFile);
         }

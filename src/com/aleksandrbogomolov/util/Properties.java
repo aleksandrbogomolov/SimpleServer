@@ -6,5 +6,5 @@ public abstract class Properties {
 
     public static final String IP = "localhost";
 
-    public static final String path = "/Volumes/Macintosh HD/Documents/Sport";
+    public static final String PATH = "/Volumes/Macintosh HD/Documents/Sport";
 }

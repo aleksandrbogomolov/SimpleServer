@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public class Logger {
 
-    private final String pathToFile = System.getProperty("user.dir") + "/" + "server_log.log";
+    private final String pathToFile = System.getProperty("user.dir") + "/" + "server.log";
 
     private Path log;
 

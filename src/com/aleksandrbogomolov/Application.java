@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 public class Application {
 
     public static void main(String[] args) {
-        Server server = new Server(Properties.path);
+        Server server = new Server();
         new Thread(server).start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String str;
