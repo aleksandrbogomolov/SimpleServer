@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SimpleServer" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
-    <toRun type="Application" name="1. Main" />
+    <toRun type="Application" name="1. Server" />
     <toRun type="Application" name="2. Client" />
     <method />
   </configuration>

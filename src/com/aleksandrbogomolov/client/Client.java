@@ -22,10 +22,6 @@ public class Client extends Thread {
 
     private final Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
-        new Client().start();
-    }
-
     public Client() {
         try {
             this.socket = new Socket(Properties.IP, Properties.PORT);
@@ -34,6 +30,10 @@ public class Client extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        new Client().start();
     }
 
     @Override

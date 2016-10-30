@@ -48,6 +48,23 @@ public class Server implements Runnable {
         logger.info("Made new server");
     }
 
+    public static void main(String[] args) {
+        Server server = new Server();
+        new Thread(server).start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String str;
+            do {
+                str = reader.readLine();
+            } while (!"exit".equals(str));
+            System.out.println("Stop server...");
+            server.stopServer();
+            server.closeAll();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
+    }
+
     @Override
     public void run() {
         try {
@@ -65,11 +82,12 @@ public class Server implements Runnable {
         }
     }
 
-    public void stopServer() { isServerStopped = true; }
+    private void stopServer() { isServerStopped = true; }
 
-    public void closeAll() {
+    private void closeAll() {
         logger.info("Server stopped");
         try {
+            //noinspection SynchronizeOnNonFinalField
             synchronized (connections) { connections.forEach(Connection::interrupt); }
             collector.interrupt();
             if (server != null) server.close();
@@ -119,7 +137,7 @@ public class Server implements Runnable {
         void printListFile() throws IOException {
             String[] fileList = fileDirectory.list();
             if (fileList != null) {
-                out.writeObject(new Message("message", fileList));
+                out.writeObject(new Message(fileList));
                 out.flush();
             } else System.out.println("Directory not exist");
             logger.info("Print list files for " + this.getName());
@@ -131,8 +149,9 @@ public class Server implements Runnable {
             byte[] bytes = new byte[(int) source.length()];
             BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(source));
 
+            //noinspection ResultOfMethodCallIgnored
             inputStream.read(bytes, 0, bytes.length);
-            out.writeObject(new Message("file", bytes));
+            out.writeObject(new Message(bytes));
             out.flush();
             inputStream.close();
 
